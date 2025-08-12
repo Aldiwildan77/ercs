@@ -7,8 +7,8 @@ describe('Given ERC20 token tests', function () {
   let ERC20Token: ERC20;
 
   before(async function () {
-    const ERC20 = await ethers.getContractFactory('ERC20');
-    ERC20Token = await ERC20.deploy();
+    const ERC20Factory = await ethers.getContractFactory('ERC20');
+    ERC20Token = (await ERC20Factory.deploy()) as unknown as ERC20;
     await ERC20Token.waitForDeployment();
   });
 

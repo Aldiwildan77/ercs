@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
+    "build": "tsc --noEmit",
     "test": "hardhat test",
     "test:verbose": "hardhat test --verbose",
     "test:coverage": "hardhat coverage",
