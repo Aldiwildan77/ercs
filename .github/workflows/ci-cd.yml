@@ -34,6 +34,9 @@ jobs:
           echo "Checking for minimatch types:"
           ls -la node_modules/@types/minimatch/ || echo "minimatch types not found"
 
+      - name: Compile smart contracts
+        run: npx hardhat compile
+
       - name: Check TypeScript compilation
         run: npm run build
 
