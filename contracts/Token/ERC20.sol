@@ -10,11 +10,13 @@ contract ERC20 is IERC20 {
 
     mapping(address => uint256) private _userBalances;
 
+    mapping(address => mapping(address => uint256)) private _allowed;
+
     constructor() {
-        _tokenSupply = 1_000_000_000 * 10 ** _decimals; // 1 billion tokens with 16 decimals
-        _userBalances[msg.sender] = _tokenSupply; // Assign all tokens to the contract
-        emit Transfer(address(0), msg.sender, _tokenSupply); // Emit transfer event for
+        _tokenSupply = 0; // Initialize total supply to zero
     }
+
+    // View functions
 
     function totalSupply() external view override returns (uint256) {
         return _tokenSupply;
@@ -24,12 +26,21 @@ contract ERC20 is IERC20 {
         return _userBalances[addr];
     }
 
+    function allowance(
+        address owner,
+        address spender
+    ) external view override returns (uint256) {
+        return _allowed[owner][spender];
+    }
+
+    // Mutation functions
+
     function transfer(
         address to,
         uint256 value
-    ) external override returns (uint256) {
+    ) external override returns (bool) {
         _transfer(msg.sender, to, value);
-        return value;
+        return true;
     }
 
     function transferFrom(
@@ -37,7 +48,16 @@ contract ERC20 is IERC20 {
         address to,
         uint256 value
     ) external override returns (bool) {
+        _spendAllowance(from, msg.sender, value);
         _transfer(from, to, value);
+        return true;
+    }
+
+    function approve(
+        address spender,
+        uint256 value
+    ) external override returns (bool) {
+        _approve(msg.sender, spender, value);
         return true;
     }
 
@@ -45,16 +65,42 @@ contract ERC20 is IERC20 {
     function _transfer(address from, address to, uint256 value) internal {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
-        require(value > 0, "ERC20: transfer value must be greater than zero");
-        require(value <= _userBalances[from], "ERC20: insufficient balance");
 
         uint256 _fromBalance = _userBalances[from];
-        uint256 _toBalance = _userBalances[to];
 
-        // ! we don't allow negative value here
-        _userBalances[from] = _fromBalance - value;
-        _userBalances[to] = _toBalance + value;
+        require(
+            _fromBalance >= value,
+            "ERC20: transfer amount exceeds balance"
+        );
+
+        unchecked {
+            _userBalances[from] = _fromBalance - value;
+        }
+
+        _userBalances[to] += value;
 
         emit Transfer(from, to, value);
+    }
+
+    function _approve(address owner, address spender, uint256 value) internal {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+
+        _allowed[owner][spender] = value;
+        emit Approval(owner, spender, value);
+    }
+
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 value
+    ) internal {
+        uint256 currentAllowance = _allowed[owner][spender];
+        if (currentAllowance != type(uint256).max) {
+            require(currentAllowance >= value, "ERC20: insufficient allowance");
+            unchecked {
+                _allowed[owner][spender] = currentAllowance - value;
+            }
+        }
     }
 }
