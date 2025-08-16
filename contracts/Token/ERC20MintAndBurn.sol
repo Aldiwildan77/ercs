@@ -12,6 +12,9 @@ contract ERC20Mintable is IERC20, IERC20Mintable, IERC20Burnable, IOwnable {
     uint256 private _tokenSupply;
     uint256 private constant _decimals = 16; // Custom for ERC20 tokens
 
+    string private _name = "ERC20CustomToken";
+    string private _symbol = "ECTA";
+
     mapping(address => uint256) private _userBalances;
     mapping(address => mapping(address => uint256)) private _allowed;
 
@@ -35,6 +38,14 @@ contract ERC20Mintable is IERC20, IERC20Mintable, IERC20Burnable, IOwnable {
             "ERC20: new owner must not be zero address"
         );
         _owner = newOwner;
+    }
+
+    function name() external view returns (string memory) {
+        return _name;
+    }
+
+    function symbol() external view returns (string memory) {
+        return _symbol;
     }
 
     // View functions
